@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:12.6
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data:cached
+  redis:
+    image: redis:5.0.4-alpine
+    volumes:
+      - redis-data:/data
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      - bundle_cache:/bundle:cached
+      - .:/app
+    depends_on:
+      - postgres
+      - redis
+    command: ["sh", "-c", "/scripts/command.sh && tail -f /dev/null"]
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres-data:
+    driver: local
+  bundle_cache:
+    driver: local
+  redis-data:
+    driver: local
